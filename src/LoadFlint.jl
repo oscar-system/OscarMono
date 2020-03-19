@@ -2,59 +2,44 @@ module LoadFlint
 
 using Libdl
 
-const pkgdir = realpath(joinpath(dirname(@__DIR__)))
-const libdir = joinpath(pkgdir, "deps", "usr", "lib")
-const bindir = joinpath(pkgdir, "deps", "usr", "bin")
-if Sys.iswindows()
-   libgmp = joinpath(bindir, "libgmp-10")
-   libflint = joinpath(bindir, "libflint")
+if VERSION > v"1.3.0-rc4"
+  # this should do the dlopen vor 1.3 and later
+  using flint_jll
 else
-   libgmp = joinpath(libdir, "libgmp")
-   libflint = joinpath(libdir, "libflint")
+  deps_dir = joinpath(@__DIR__, "..", "deps")
+  include(joinpath(deps_dir,"deps.jl"))
 end
 
 const __isthreaded = Ref(false)
 
 function __init__()
-  global libflint, libgmp
+  if VERSION < v"1.3.0-rc4"
+    # this does the dlopen for 1.0-1.2
+    check_deps()
+  end
 
   l = dllist()
-
   f = filter(x->occursin("libflint", x), l)
-  new_flint = true
-  if length(f) == 1
-    global libflint = f[1]
-    new_flint = false
-  elseif length(f) > 0
-    error("too many flint")
+  if length(f) != 1
+    error("there should be exactly one libflint, but we have: ", f)
   end
 
-  tmp = Sys.iswindows() ? "libgmp-10" : "libgmp"
+  tmp = Sys.iswindows() ? "libgmp-10" : "libgmp."
   f = filter(x->occursin(tmp, x), l)
-  new_gmp = true
-  if length(f) == 1
-    global libgmp = f[1]
-    new_gmp = false
-  elseif length(f) > 0
-    global libgmp = f[1]
-    @warn "More than one copy of gmp already loaded, using the 1st one"
-    new_gmp = false
+  if length(f) != 1
+    # TODO:
+    # at the moment there doesnt seem to be a way to avoid this
+    # because julia comes with libgmp
+    # and GMP_jll will load another libgmp
+    @warn("there should be exactly one libgmp, but we have: ", f)
   end
+  global libgmp = f[1]
 
-  if new_gmp && !Sys.iswindows() && !__isthreaded[]
-    lf = dllist(libgmp)
-    fm = dlsym(lf, :__gmp_set_memory_functions)
-    ccall(fm, Nothing,
-            (Ptr{Nothing},Ptr{Nothing},Ptr{Nothing}),
-            cglobal(:jl_gc_counted_malloc),
-            cglobal(:jl_gc_counted_realloc_with_old_size),
-            cglobal(:jl_gc_counted_free_with_size))
-  end          
-
-  if new_flint && !Sys.iswindows() && !__isthreaded[]
-    lf = dlopen(libflint)
-    fm = dlsym(lf, :__flint_set_memory_functions)
+  if !Sys.iswindows() && !__isthreaded[]
+    # variable libflint comes from deps file or flint_jll
+    flint_handle = dlopen(libflint,RTLD_NOLOAD)
     #to match the global gmp ones
+    fm = dlsym(flint_handle, :__flint_set_memory_functions)
     ccall(fm, Nothing,
       (Ptr{Nothing},Ptr{Nothing},Ptr{Nothing},Ptr{Nothing}),
         cglobal(:jl_malloc),
