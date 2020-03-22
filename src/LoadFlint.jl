@@ -1,19 +1,16 @@
 module LoadFlint
 
-greet() = print("Hello World!")
-
 using Libdl
-
 
 const pkgdir = realpath(joinpath(dirname(@__DIR__)))
 const libdir = joinpath(pkgdir, "deps", "usr", "lib")
 const bindir = joinpath(pkgdir, "deps", "usr", "bin")
 if Sys.iswindows()
-   libgmp = joinpath(pkgdir, "deps", "usr", "bin", "libgmp-10")
-   libflint = joinpath(pkgdir, "deps", "usr", "bin", "libflint")
+   libgmp = joinpath(bindir, "libgmp-10")
+   libflint = joinpath(bindir, "libflint")
 else
-   libgmp = joinpath(pkgdir, "deps", "usr", "lib", "libgmp")
-   libflint = joinpath(pkgdir, "deps", "usr", "lib", "libflint")
+   libgmp = joinpath(libdir, "libgmp")
+   libflint = joinpath(libdir, "libflint")
 end
 
 const __isthreaded = Ref(false)
@@ -23,22 +20,23 @@ function __init__()
 
   l = dllist()
 
-  f = findall(x->occursin("flint", x), l)
+  f = filter(x->occursin("libflint", x), l)
   new_flint = true
   if length(f) == 1
-    global libflint = l[f[1]]
+    global libflint = f[1]
     new_flint = false
-  else
-    length(f) == 0 || error("too many flint")
+  elseif length(f) > 0
+    error("too many flint")
   end
 
-  f = findall(x->occursin("libgmp", x), l)
+  tmp = Sys.iswindows() ? "libgmp-10" : "libgmp"
+  f = filter(x->occursin(tmp, x), l)
   new_gmp = true
   if length(f) == 1
-    global libgmp = l[f[1]]
+    global libgmp = f[1]
     new_gmp = false
-  else
-    length(f) == 0 || error("too many gmp")
+  elseif length(f) > 0
+    error("too many gmp")
   end
 
   if new_gmp && !Sys.iswindows() && !__isthreaded[]
