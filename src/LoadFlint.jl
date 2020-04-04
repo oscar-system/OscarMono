@@ -4,7 +4,7 @@ using Libdl
 
 if VERSION > v"1.3.0-rc4"
   # this should do the dlopen vor 1.3 and later
-  using flint_jll
+  using FLINT_jll
 else
   deps_dir = joinpath(@__DIR__, "..", "deps")
   include(joinpath(deps_dir,"deps.jl"))
@@ -24,8 +24,8 @@ function __init__()
     error("there should be exactly one libflint, but we have: ", f)
   end
 
-  tmp = Sys.iswindows() ? "libgmp-10" : "libgmp."
-  f = filter(x->occursin(tmp, x), l)
+  # the -10 / . at the end is important to avoid matching libgmpxx
+  f = filter(x->occursin(r"libgmp(-10|\.)", x), dllist())
   if length(f) != 1
     # TODO:
     # at the moment there doesnt seem to be a way to avoid this

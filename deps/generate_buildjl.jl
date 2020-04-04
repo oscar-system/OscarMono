@@ -222,5 +222,5 @@ open(buildjl_path, "w") do io
     print_buildjl(io, products, product_hashes, bin_path)
 end
 
-# julia --color=yes generate_buildjl.jl somewhere/Flint2Builder/build_tarballs.jl benlorenz/flint_jll.jl flint-v0.0.0-dd1021a6+0
-# build_flint...jl needs some extra fixes afterwards to work
+# julia --color=yes generate_buildjl.jl Yggdrasil/F/FLINT/build_tarballs.jl
+# one needs to add prefix as first argument to LibraryProduct afterwards

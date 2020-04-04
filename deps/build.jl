@@ -32,9 +32,13 @@ elseif VERSION < v"1.3.0-rc4"
 
    dependencies = [
      # This has to be in sync with the jll packages (using generate_build.jl and build_tarballs.jl from Yggdrasil)
-     "build_flint.v0.0.0-dd1021a6.jl",
+     "build_FLINT.v0.0.1.jl",
     ]
-    # GMP and MPFR are not needed as julia should have those loaded already
+    # GMP is not needed on unix as julia should have those loaded already
+   if Sys.iswindows()
+       pushfirst!(dependencies,"build_MPFR.v4.0.2.jl")
+       pushfirst!(dependencies,"build_GMP.v6.1.2.jl")
+   end
 
    const prefix = Prefix(get([a for a in ARGS if a != "--verbose"], 1, joinpath(@__DIR__, "usr")))
 
@@ -55,8 +59,7 @@ end
 # we do libgmp manually to avoid loading the one from BinaryBuilder and the julia one
 open(joinpath(@__DIR__,"deps.jl"), "a") do f
    println(f, """
-gmpname = Sys.iswindows() ? "libgmp-10" : "libgmp."
-f = filter(x->occursin(gmpname, x), dllist())
+f = filter(x->occursin(r"libgmp(-10|\\.)", x), dllist())
 libgmp = f[1]
 """)
 end
