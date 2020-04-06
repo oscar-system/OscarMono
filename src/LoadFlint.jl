@@ -36,7 +36,9 @@ function __init__()
     global libgmp = f[1]
     new_gmp = false
   elseif length(f) > 0
-    error("too many gmp")
+    global libgmp = f[1]
+    @warn "More than one copy of gmp already loaded, using the 1st one"
+    new_gmp = false
   end
 
   if new_gmp && !Sys.iswindows() && !__isthreaded[]
