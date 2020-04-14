@@ -20,6 +20,10 @@ libflint = "$flint_path"
 if Libdl.dlopen_e(libflint) in (C_NULL, nothing)
     error("$(libflint) cannot be opened, Please check FLINT_PATH environment variable and re-run Pkg.build("LoadFlint"), then restart Julia.")
 end
+# there must be some libgmp loaded for libflint
+libgmp = filter(x->occursin(r"libgmp[.-]", x), dllist())[1]
+libmpfr = filter(x->occursin(r"libmpfr[.-]", x), dllist())[1]
+
 """)
    end
 
@@ -30,15 +34,14 @@ elseif VERSION < v"1.3.0-rc4"
    # Parse some basic command-line arguments
    const verbose = "--verbose" in ARGS
 
+   # GMP and MPFR might not be needed on unix as julia should have those loaded already
+   # but on windows flint will not load without them so we put leave them here for simplicity
    dependencies = [
      # This has to be in sync with the jll packages (using generate_build.jl and build_tarballs.jl from Yggdrasil)
+     "build_GMP.v6.1.2.jl",
+     "build_MPFR.v4.0.2.jl",
      "build_FLINT.v0.0.1.jl",
-    ]
-    # GMP is not needed on unix as julia should have those loaded already
-   if Sys.iswindows()
-       pushfirst!(dependencies,"build_MPFR.v4.0.2.jl")
-       pushfirst!(dependencies,"build_GMP.v6.1.2.jl")
-   end
+   ]
 
    const prefix = Prefix(get([a for a in ARGS if a != "--verbose"], 1, joinpath(@__DIR__, "usr")))
 
@@ -56,10 +59,3 @@ elseif VERSION < v"1.3.0-rc4"
 
 end
 
-# we do libgmp manually to avoid loading the one from BinaryBuilder and the julia one
-open(joinpath(@__DIR__,"deps.jl"), "a") do f
-   println(f, """
-f = filter(x->occursin(r"libgmp(-10|\\.)", x), dllist())
-libgmp = f[1]
-""")
-end
