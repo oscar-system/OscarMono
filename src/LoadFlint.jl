@@ -13,6 +13,8 @@ else
   include(joinpath(deps_dir,"deps.jl"))
 end
 
+libflint_handle = C_NULL
+
 const __isthreaded = Ref(false)
 
 function __init__()
@@ -30,19 +32,20 @@ function __init__()
   # the [.-] at the end is important to avoid matching libgmpxx
   f = filter(x->occursin(r"libgmp[.-]", x), dllist())
   if length(f) == 0
-    error("there should be at least one libgmp loaded.")
+    error("there must be at least one libgmp loaded.")
   elseif length(f) > 1
     # at the moment there doesnt seem to be a way to avoid this
     # because julia comes with libgmp
     # and GMP_jll will load another libgmp
-    @warn("there should be exactly one libgmp, but we have: ", f)
+    @debug("there should be exactly one libgmp, but we have: ", f)
   end
 
+  # variable libflint comes from deps file or flint_jll
+  global libflint_handle = dlopen(libflint,RTLD_NOLOAD)
+
   if !Sys.iswindows() && !__isthreaded[]
-    # variable libflint comes from deps file or flint_jll
-    flint_handle = dlopen(libflint,RTLD_NOLOAD)
     #to match the global gmp ones
-    fm = dlsym(flint_handle, :__flint_set_memory_functions)
+    fm = dlsym(libflint_handle, :__flint_set_memory_functions)
     ccall(fm, Nothing,
       (Ptr{Nothing},Ptr{Nothing},Ptr{Nothing},Ptr{Nothing}),
         cglobal(:jl_malloc),

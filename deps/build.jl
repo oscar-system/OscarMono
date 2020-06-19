@@ -35,7 +35,7 @@ elseif VERSION < v"1.3.0-rc4"
    const verbose = "--verbose" in ARGS
 
    # GMP and MPFR might not be needed on unix as julia should have those loaded already
-   # but on windows flint will not load without them so we put leave them here for simplicity
+   # but on windows flint will not load without them so we leave them here for simplicity
    dependencies = [
      # This has to be in sync with the jll packages (using generate_build.jl and build_tarballs.jl from Yggdrasil)
      "build_GMP.v6.1.2.jl",
