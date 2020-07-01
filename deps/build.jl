@@ -40,7 +40,7 @@ elseif VERSION < v"1.3.0-rc4"
      # This has to be in sync with the jll packages (using generate_build.jl and build_tarballs.jl from Yggdrasil)
      "build_GMP.v6.1.2.jl",
      "build_MPFR.v4.0.2.jl",
-     "build_FLINT.v0.0.2.jl",
+     "build_FLINT.v2.6.0.jl",
    ]
 
    const prefix = Prefix(get([a for a in ARGS if a != "--verbose"], 1, joinpath(@__DIR__, "usr")))
