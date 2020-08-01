@@ -29,7 +29,10 @@ libmpfr = filter(x->occursin(r"libmpfr[.-]", x), dllist())[1]
 
 elseif VERSION < v"1.3.0-rc4"
 
-   using BinaryProvider
+   using Pkg, BinaryProvider
+
+   # This does not work on julia >= 1.3, but there we use the *jll package anyway.
+   ver = Pkg.API.__installed(PKGMODE_MANIFEST)["FLINT_jll"]
 
    # Parse some basic command-line arguments
    const verbose = "--verbose" in ARGS
@@ -40,8 +43,15 @@ elseif VERSION < v"1.3.0-rc4"
      # This has to be in sync with the jll packages (using generate_build.jl and build_tarballs.jl from Yggdrasil)
      "build_GMP.v6.1.2.jl",
      "build_MPFR.v4.0.2.jl",
-     "build_FLINT.v2.6.0.jl",
    ]
+
+   if ver == v"2.6.0+0"
+     push!(dependencies, "build_FLINT.v2.6.0.jl")
+   elseif ver == v"2.6.2+0"
+     push!(dependencies, "build_FLINT.v2.6.2.jl")
+   else
+     throw(error("Flint version $ver not supported for julia version <= 1.3"))
+   end
 
    const prefix = Prefix(get([a for a in ARGS if a != "--verbose"], 1, joinpath(@__DIR__, "usr")))
 
