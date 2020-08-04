@@ -1,7 +1,7 @@
 name = "LoadFlint"
 uuid = "472f376f-f1cf-461b-9ac1-d103423be9b7"
 authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
