@@ -1,0 +1,13 @@
+https://github.com/oscar-system/LoadFlint.jl
+https://github.com/Nemocas/AbstractAlgebra.jl
+https://github.com/Nemocas/Nemo.jl
+https://github.com/thofma/Hecke.jl
+https://github.com/oscar-system/GAP.jl
+https://github.com/oscar-system/Polymake.jl
+https://github.com/oscar-system/libsingular-julia
+https://github.com/oscar-system/libpolymake-julia
+https://github.com/oscar-system/Singular.jl
+https://github.com/oscar-system/Oscar.jl
+
+# TODO: what about the JLLs?
+# TODO: what about Flint/Singular/GAP/Polymake?
