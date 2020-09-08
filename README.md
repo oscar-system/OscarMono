@@ -4,6 +4,9 @@
 
 The purpose of this mono repository is ... TODO
 
+Developers should work with Julia 1.5 to use this monorepo. However, package releases
+made from it should work also for users of older Julia versions
+
 
 ## How this repository was made
 
@@ -30,3 +33,9 @@ easy to install it manually:
    in your PATH then you can do this:
 
         cp git-subtree.sh  ~/bin/git-subtree
+
+
+## GitHub issues relevant to working with a monorepo
+
+- <https://github.com/JuliaLang/Pkg.jl/issues/1925>
+- <https://github.com/JuliaLang/Pkg.jl/issues/1928>
