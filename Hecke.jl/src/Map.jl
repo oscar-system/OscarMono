@@ -1,0 +1,8 @@
+include("Map/Map.jl")
+include("Map/ResidueRingPoly.jl")
+include("Map/NfOrd.jl")
+include("Map/NumberField.jl")
+include("Map/GrpAb.jl")
+include("Map/NfRel.jl")
+include("Map/FqPolyRing.jl")
+include("Map/NumField.jl")
