@@ -735,22 +735,30 @@ function coprime_base(A::Array{NfOrdIdl, 1}; refine::Bool = false)
     for i = 2:length(A)
       append!(pf, prefactorization(A[i]))
     end
-    a1 = coprime_base(fmpz[x.gen_one for x in pf])
+    a1 = fmpz[x.gen_one for x in pf if !isone(x.gen_one)]
+    if !isempty(a1)
+      a1 = coprime_base(a1)
+    end
     for I in pf
-      if !(I.gen_one in a1)
+      if !(I.gen_one in a1) && !isone(minimum(I, copy = false))
         push!(a1, minimum(I))
         push!(a1, norm(I))
       end
     end
-    a1 = coprime_base(a1)
   else
     pf = A
-    a1 = Set{fmpz}(vcat(fmpz[minimum(x) for x in pf], fmpz[norm(x) for x in pf]) )
+    a2 = Set{fmpz}()
+    for x in pf
+      if !isone(minimum(x, copy = false))
+        push!(a2, minimum(x), norm(x))
+      end
+    end
+    a1 = collect(a2)
   end
   if isempty(a1)
     return NfOrdIdl[]
   end
-  a = coprime_base(collect(a1))
+  a = coprime_base(a1)
   C = Array{NfOrdIdl, 1}()
   for p = a
     if isone(p)
@@ -1056,6 +1064,7 @@ function val_func_index(p::NfOrdIdl)
       c = content(x_mat)
       vc = valuation(c, P)
       while vc > 0  # should divide and test in place
+        #Carlo : How? Not clear how to improve this code.
 	      divexact!(x_mat, x_mat, c)
         mul!(x_mat, x_mat, M)
         v += 1 + (vc-1)*p.splitting_type[1]
@@ -1304,7 +1313,7 @@ function valuation(a::fmpz, p::NfAbsOrdIdl)
   if p.splitting_type[1] == 0
     return valuation_naive(order(p)(a), p)
   end
-  P = minimum(p)
+  P = minimum(p, copy = false)
   return valuation(a, P)* p.splitting_type[1]
 end
 @doc Markdown.doc"""
@@ -1636,11 +1645,12 @@ end
 prime_ideals_over(O::NfOrd, p::Integer) = prime_ideals_over(O, fmpz(p))
 
 function prime_ideals_over(O::NfOrd, p::fmpz)
-  M = maximal_order(O)
-  lp = prime_decomposition(M, p)
-  if M == O
+  if ismaximal_known_and_maximal(O)
+    lp = prime_decomposition(O, p)
     return NfOrdIdl[x[1] for x in lp]
   end
+  M = maximal_order(O)
+  lp = prime_decomposition(M, p)
   p_critical_primes = Vector{ideal_type(O)}()
   for (P, e) in lp
     c = contract(P, O)

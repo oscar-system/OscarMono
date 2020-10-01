@@ -777,6 +777,10 @@ function power_sums_to_polynomial(P::Array{T, 1}) where T
   for i=1:div(d, 2)
     E[i], E[d-i+1] = (-1)^(d-i)*E[d-i+1], (-1)^(i-1)*E[i]
   end
+  if isodd(d)
+    E[div(d+1, 2)] *= (-1)^div(d, 2)
+  end
+  
   return PolynomialRing(R, cached = false)[1](E)
 end
 
@@ -1022,7 +1026,7 @@ function number_real_roots(f::PolyElem{nf_elem}, P::InfPlc; sturm_sequence = Pol
 end
 
 function number_positive_roots(f::PolyElem{nf_elem}, P::InfPlc)
-  fsq = squarefree_factorization(f)
+  fsq = factor_squarefree(f)
   p = 0
   for (g, e) in fsq
     p = p + _number_positive_roots_sqf(g, P) * e
@@ -1058,7 +1062,7 @@ end
 ################################################################################
 
 # This is Musser's algorithm
-function squarefree_factorization(f::PolyElem)
+function factor_squarefree(f::PolyElem)
   @assert iszero(characteristic(base_ring(f)))
   c = lead(f)
   f = divexact(f, c)
@@ -1531,4 +1535,38 @@ function mahler_measure_bound(f::fmpz_poly)
   return root(sum([coeff(f, i)^2 for i=0:degree(f)])-1, 2)+1
 end
 
-
+function prod1(a::Vector{T}; inplace::Bool = false) where T <: PolyElem
+  if length(a) == 1
+    return deepcopy(a[1])
+  end
+  if length(a) == 2
+    if inplace
+      r = mul!(a[1], a[1], a[2])
+      return r
+    else
+      return a[1]*a[2]
+    end
+  end
+  nl = div(length(a), 2)
+  if isodd(length(a))
+    nl += 1
+  end
+  anew = Vector{T}(undef, nl)
+  for i = 1:length(anew)-1
+    if inplace
+      anew[i] = mul!(a[2*i-1], a[2*i-1], a[2*i])
+    else
+      anew[i] = a[2*i-1]*a[2*i]
+    end
+  end
+  if isodd(length(a))
+    anew[end] = a[end]
+  else
+    if inplace
+      anew[end] = mul!(a[end-1], a[end-1], a[end])
+    else
+      anew[end] = a[end]*a[end-1]
+    end
+  end 
+  return prod1(anew, inplace = true)
+end

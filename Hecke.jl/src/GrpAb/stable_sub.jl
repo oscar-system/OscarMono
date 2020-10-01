@@ -617,7 +617,7 @@ function _submodules_with_struct_main(M::ZpnGModule, typesub::Array{Int,1})
       for s = 1:length(newlist)
         ord = fmpz(1)
 	      for t = 1:nrows(newlist[s])
-          ord *= order(M.V(lift(view(newlist[s], t:t, 1:ncols(newlist[s])))))
+          ord *= order(GrpAbFinGenElem(M.V, lift(view(newlist[s], t:t, 1:ncols(newlist[s])))))
 	      end
         if ord >= order_test
           t1, mt1 = submodule_to_subgroup(M, newlist[s])
@@ -635,6 +635,9 @@ function _submodules_with_struct_main(M::ZpnGModule, typesub::Array{Int,1})
 end
 
 function _special_is_isomorphic(G::GrpAbFinGen, Gtest::GrpAbFinGen)
+  if issnf(G)
+    return G.snf == Gtest.snf
+  end
   mat = hnf_modular_eldiv(G.rels, exponent(Gtest))
   mm = snf(mat)
   inv = fmpz[mm[i, i] for i = 1:ncols(mm) if !isone(mm[i, i])]
