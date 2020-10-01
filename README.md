@@ -39,3 +39,5 @@ easy to install it manually:
 
 - <https://github.com/JuliaLang/Pkg.jl/issues/1925>
 - <https://github.com/JuliaLang/Pkg.jl/issues/1928>
+- <https://github.com/JuliaLang/Pkg.jl/issues/1251>
+- <https://github.com/JuliaRegistries/RegistryTools.jl/issues/30>
