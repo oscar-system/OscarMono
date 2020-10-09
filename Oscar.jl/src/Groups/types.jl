@@ -32,6 +32,7 @@ import Hecke:
     issubgroup,
     issurjective,
     kernel,
+    Map,
     mul,
     mul!,
     ngens,
@@ -42,6 +43,7 @@ import Hecke:
     preimage,
     quo,
     representative,
+    SetMap,
     small_group,
     sub,
     subgroups
@@ -58,6 +60,7 @@ export
     FPGroup,
     FPGroupElem,
     GAPGroupElem,
+    GAPGroupHomomorphism,
     MatrixGroup,
     MatrixGroupElem,
     PcGroup,
@@ -120,7 +123,7 @@ end
 Element of a group of permutation. It is displayed as product of disjoint cycles.
 # Assumptions:
 - for `x`,`y` in Sym(n), the product `xy` is read from left to right;
-- for `x` in Sym(n) and `i` in {1,...,n}, `x(i)` return the image of `i` under the action of `x`.
+- for `x` in Sym(n) and `i` in {1,...,n}, `i^x` and `x(i)` return the image of `i` under the action of `x`.
 """
 const PermGroupElem = GAPGroupElem{PermGroup}
 
@@ -202,7 +205,9 @@ const FPGroupElem = GAPGroupElem{FPGroup}
 #
 ################################################################################
 
-struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
+abstract type GAPMap <: SetMap end
+
+struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupHomomorphism{S,T}}
    domain::S
    codomain::T
    map::GapObj
@@ -258,7 +263,7 @@ end
 
 """
     WreathProductGroup
-Wreath product of a group `G` and a group of permutations `H`.
+Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
 """
 struct WreathProductGroup <: GAPGroup
   X::GapObj
