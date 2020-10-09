@@ -64,6 +64,22 @@ end
 
 export @gap
 
+# Define a plain function that contains the code of the `@g_str` macro.
+# Note that errors thrown by macros can apparently not be tested using
+# `@test_throw`.
+function gap_string_macro_helper(str::String)
+    # We assume that `str` is the input of the `@g_str` macro;
+    # more precisely, `str` is what arrives inside the code of the macro.
+    # Note that here backslashes inside `str` are literally contained in `str`,
+    # except for backslashes that escape doublequotes.
+    # In order to get the intended meaning (as stated in the GAP manual section
+    # "Special Characters"),
+    # we escape doublequotes and leave the interpretation to `evalstr`.
+    evl = evalstr("\"" * replace(str, "\"" => "\\\"") * "\"")
+    evl === nothing && error("failed to convert to GapObj:\n $str")
+
+    return evl
+end
 
 """
     @g_str
@@ -74,10 +90,34 @@ Create a GAP string by typing `g"content"`.
 ```jldoctest
 julia> g"foo"
 GAP: "foo"
+
+julia> g"ab\\ncd\\\"ef\\\\gh"   # special characters are handled as in GAP
+GAP: "ab\\ncd\\\"ef\\\\gh"
+
+```
+
+Due to Julia's way of handing over arguments into the code of macros,
+not all strings representing valid GAP strings can be processed.
+
+```jldoctest
+julia> g"\\\\"
+ERROR: LoadError: failed to convert to GapObj:
+ \\
+[...]
+
+```
+
+Conversely,
+there are valid arguments for the macro that are not valid Julia strings.
+
+```jldoctest
+julia> g"\\c"
+GAP: "\\c"
+
 ```
 """
 macro g_str(str)
-    return julia_to_gap(str)
+    return gap_string_macro_helper(str)
 end
 
 export @g_str
